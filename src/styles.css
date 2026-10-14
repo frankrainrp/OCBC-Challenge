@@ -2,18 +2,18 @@
 
 :root {
   font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
-  color: #242a2d;
-  background: #f3f4f4;
+  color: #2c3038;
+  background: #f5f6f8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --accent: #b7232c;
-  --accent-hover: #981d25;
-  --text: #242a2d;
-  --muted: #62696c;
-  --line: #d8dcdd;
-  --surface: #fafbfa;
-  --radius: 4px;
+  --accent: #b72d40;
+  --accent-hover: #9e2335;
+  --text: #2c3038;
+  --muted: #626875;
+  --line: #e0e3e8;
+  --surface: #fcfcfd;
+  --radius: 14px;
 }
 
 * { box-sizing: border-box; }

@@ -1,4 +1,4 @@
-# OCABC Challenge
+# OCBC Challenge
 
 <!-- impeccable:product-schema 1 -->
 
@@ -20,7 +20,7 @@ Demonstrate a useful moment of friction: review a request, verify through an exi
 
 ## Operating Context
 
-Desktop-delivered demo and a public GitHub repository named OCABC-Challenge. Mobile-first responsive web is the implementation assumption. Simplified Chinese is the initial interface language. The user delegated software and UI implementation decisions.
+Desktop-delivered demo and a public GitHub repository named OCBC-Challenge. Mobile-first responsive web is the implementation assumption. Simplified Chinese is the initial interface language. The user delegated software and UI implementation decisions.
 
 ## Capabilities and Constraints
 
@@ -28,11 +28,11 @@ Local, deterministic message-risk explanations; guided verification; simulated t
 
 ## Brand Commitments
 
-Familiar, trustworthy, minimal banking-service appearance, readable in every state. No emoji, gradients, glass, shadows, Lucide icons, rounded card grids, testimonials, pricing sections, neon, decorative motion, or irrelevant page content. Do not copy the official OCBC logo or imply the demo is a bank service.
+Familiar, trustworthy and readable in every state. The user's chosen visual references are a quiet folder-tree sidebar and sculpted folders containing layered paper. Use native SVG and CSS for the material, depth and purposeful motion. Keep navigation, controls, evidence and verification steps in that same visual language. Use restrained depth and a red primary action, with slate, blue and gold folder illustrations. No emoji, generated imagery, Lucide icons, marketing sections, fake testimonials, unrelated content or looping ambient animation. Respect reduced-motion preferences. Use the name OCBC. Do not copy the official OCBC logo or imply the demo is a bank service.
 
 ## Evidence on Hand
 
-User brief: PS3 Digital Trust, and three anti-pattern reference screenshots. Official OCBC security guidance and Singapore Government Design System content/accessibility references were consulted. The screenshots are references only and must not be published in the repository.
+User brief: PS3 Digital Trust, three anti-pattern screenshots and two later material-interface references that define the current visual direction. Official OCBC security guidance and Singapore Government Design System content/accessibility references were consulted. The user's screenshots are references only and must not be published in the repository.
 
 ## Product Principles
 

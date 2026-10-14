@@ -64,13 +64,13 @@ test('incident record is downloaded locally and is not claimed submitted', async
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: '下载事件记录' }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe('OCABC-incident-note.txt');
+  expect(download.suggestedFilename()).toBe('OCBC-incident-note.txt');
   await expect(page.getByRole('status')).toContainText('尚未提交给银行或警方');
 });
 
 test('privacy dialog is keyboard dismissible and preserves focus', async ({ page }) => {
   await page.goto('/');
-  const trigger = page.getByRole('button', { name: '隐私说明' });
+  const trigger = page.getByRole('button', { name: '隐私说明', exact: true });
   await trigger.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -110,6 +110,10 @@ test('mobile input and result fit and pass automated accessibility checks', asyn
   await page.getByRole('button', { name: '检查这段内容' }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.getByRole('button', { name: '开始独立核实' }).click();
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await page.goto('/#help');
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
 });
 
 test('standalone HTML opens from disk and sends no network requests', async ({ page }) => {
@@ -120,4 +124,22 @@ test('standalone HTML opens from disk and sends no network requests', async ({ p
   await page.getByRole('button', { name: '检查这段内容' }).click();
   await expect(page.getByRole('heading', { name: '阻止你向其他人核实' })).toBeVisible();
   expect(requests).toEqual([]);
+});
+
+test('native folder responds to hover and honours reduced motion', async ({ page }) => {
+  await page.goto('/');
+  const scene = page.locator('.side-note .trust-scene');
+  await scene.hover();
+  await expect(scene.locator('.sheet-left')).not.toHaveCSS('transform', 'none');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(scene.locator('.folder-body')).toHaveCSS('animation-name', 'none');
+  await expect(scene.locator('.trust-object')).toHaveCSS('transition-duration', '0s');
+});
+
+test('evidence highlights are extracted from the user message', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '亲友紧急求助' }).click();
+  await page.getByRole('button', { name: '检查这段内容' }).click();
+  await expect(page.locator('.findings mark')).toHaveCount(3);
+  await expect(page.locator('.findings mark').first()).toHaveText('急事');
 });

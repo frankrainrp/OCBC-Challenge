@@ -1,5 +1,5 @@
 export type Identity = 'family' | 'bank' | 'work' | 'unknown';
-export type Finding = { id: string; title: string; detail: string; evidence: string };
+export type Finding = { id: string; title: string; detail: string; evidence: string; match?: string };
 export type Analysis = { identity: Identity; findings: Finding[]; source: string };
 export type Transfer = {
   name: string;
@@ -74,7 +74,7 @@ export function analyseMessage(text: string): Analysis {
       if (rule.id === 'credentials' && /不要|切勿|绝不|never|do not|don't/i.test(part)) return false;
       return true;
     });
-    return sentence ? [{ id: rule.id, title: rule.title, detail: rule.detail, evidence: sentence.trim().slice(0, 140) }] : [];
+    return sentence ? [{ id: rule.id, title: rule.title, detail: rule.detail, evidence: sentence.trim().slice(0, 140), match: sentence.match(rule.pattern)?.[0] }] : [];
   });
   return { identity, findings, source };
 }

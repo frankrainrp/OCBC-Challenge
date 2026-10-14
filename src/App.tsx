@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import { ArrowRight, ArrowSquareOut, CaretLeft, DownloadSimple, LockSimple, Phone, Shield, X } from '@phosphor-icons/react';
+import { ArrowRight, ArrowSquareOut, CaretLeft, ChatText, DownloadSimple, LockSimple, Phone, X } from '@phosphor-icons/react';
 import { analyseMessage, analyseTransfer, examples, initialTransfer, money, officialLinks, verification } from './domain';
 import type { Analysis, Identity, Transfer } from './domain';
+import FolderGlyph from './components/FolderGlyph';
+import TrustScene from './components/TrustScene';
+import EvidenceText from './components/EvidenceText';
+import RecordSeal from './components/RecordSeal';
 
 type Page = 'check' | 'transfer' | 'help';
 type Stage = 'input' | 'result' | 'verify' | 'paused' | 'recorded';
@@ -28,16 +32,11 @@ function Progress({ stage }: { stage: Stage }) {
   </ol>;
 }
 
-function SideNote({ page, goHelp }: { page: Page; goHelp: () => void }) {
+function SideNote({ page, stage, findings, goHelp }: { page: Page; stage: Stage; findings: number; goHelp: () => void }) {
   return <aside className="side-note" aria-label="核验提醒">
-    <div className="side-shield"><Shield size={36} weight="regular" aria-hidden="true" /></div>
+    <TrustScene state={stage} findings={findings} tone={page === 'transfer' ? 'blue' : 'slate'} />
     <h2>熟悉的声音，<br />也值得再确认。</h2>
     <p>AI 可以模仿声音、头像和语气。真正有用的核验，是从你原有的渠道重新联系对方。</p>
-    <div className="principles">
-      <div><span>先停一下</span><p>不急着转账或分享验证码。</p></div>
-      <div><span>换个渠道</span><p>使用原有号码或官方 App。</p></div>
-      <div><span>确认请求</span><p>问清楚身份、用途和收款人。</p></div>
-    </div>
     <div className="side-help">
       <p>{page === 'transfer' ? '这笔转账让你感到不安？' : '已经转账或泄露信息？'}</p>
       <button className="text-button" onClick={goHelp}>查看现在可以做什么 <ArrowRight size={17} aria-hidden="true" /></button>
@@ -114,10 +113,10 @@ export default function App() {
   }
 
   function downloadIncident() {
-    const note = ['OCABC Challenge | 事件整理记录', '这是本地导出的草稿，尚未提交给银行或警方。', `导出时间：${new Date().toLocaleString('zh-CN')}`, '', '用户记录', incident.trim() || '未填写补充记录。', '', '核验内容', analysis?.source ?? '未进行内容核验。', '', '发现的线索', analysis?.findings.map((finding) => `${finding.title}：${finding.evidence}`).join('\n') || '没有记录线索。', '', '请尽快从银行官方渠道寻求帮助。不要在报告中填写验证码或密码。'].join('\n');
+    const note = ['OCBC Challenge | 事件整理记录', '这是本地导出的草稿，尚未提交给银行或警方。', `导出时间：${new Date().toLocaleString('zh-CN')}`, '', '用户记录', incident.trim() || '未填写补充记录。', '', '核验内容', analysis?.source ?? '未进行内容核验。', '', '发现的线索', analysis?.findings.map((finding) => `${finding.title}：${finding.evidence}`).join('\n') || '没有记录线索。', '', '请尽快从银行官方渠道寻求帮助。不要在报告中填写验证码或密码。'].join('\n');
     const url = URL.createObjectURL(new Blob(['\uFEFF', note], { type: 'text/plain;charset=utf-8' }));
     const link = document.createElement('a');
-    link.href = url; link.download = 'OCABC-incident-note.txt'; link.click();
+    link.href = url; link.download = 'OCBC-incident-note.txt'; link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 2000);
     setDownloaded(true);
   }
@@ -128,35 +127,39 @@ export default function App() {
 
   return <div className="app">
     <a className="skip-link" href="#main" onClick={(event) => { event.preventDefault(); const main = document.getElementById('main'); main?.focus(); main?.scrollIntoView({ block: 'start' }); }}>跳到主要内容</a>
+    <aside className="app-sidebar" aria-label="应用导航">
     <header className="site-header">
       <div className="header-inner">
-        <button className="wordmark" aria-label="OCABC Challenge 首页" onClick={() => navigate('check')}><strong>OCABC</strong><span>CHALLENGE</span></button>
-        <span className="brand-divider" aria-hidden="true" />
+        <button className="wordmark" aria-label="OCBC Challenge 首页" onClick={() => navigate('check')}><strong>OCBC</strong><span>CHALLENGE</span></button>
         <span className="product-name">安心核验</span>
-        <span className="demo-label">概念演示</span>
       </div>
     </header>
     <div className="nav-wrap">
+      <p className="nav-label">安全工具</p>
       <nav className="main-nav" aria-label="主要功能">
-        {([['check', '消息核验'], ['transfer', '转账前确认'], ['help', '紧急帮助']] as const).map(([key, title]) => <a key={key} href={`#${key}`} onClick={() => { if (key === page) navigate(key); }} aria-current={page === key ? 'page' : undefined}>{title}</a>)}
-        <span className="nav-caption">DIGITAL TRUST</span>
+        {([['check', '消息核验', 'red'], ['transfer', '转账前确认', 'blue'], ['help', '紧急帮助', 'gold']] as const).map(([key, title, tone]) => <a key={key} href={`#${key}`} onClick={() => { if (key === page) navigate(key); }} aria-current={page === key ? 'page' : undefined}><FolderGlyph tone={tone} /><span>{title}</span><span className="nav-active-mark" aria-hidden="true" /></a>)}
       </nav>
     </div>
-
+    <button className="sidebar-privacy" onClick={() => setPolicy('privacy')}><LockSimple size={19} aria-hidden="true" /><span><strong>内容仅在本机处理</strong><small>查看隐私说明</small></span></button>
+    <p className="sidebar-caption">OCBC Challenge<br />独立概念原型</p>
+    </aside>
+    <div className="content-shell">
+    <div className="app-topbar"><div><span>个人安全中心</span><span className="breadcrumb-slash" aria-hidden="true">/</span><strong>{page === 'check' ? '消息核验' : page === 'transfer' ? '转账前确认' : '紧急帮助'}</strong></div><span className="demo-label">概念演示</span></div>
     <main id="main" className="main-container" tabIndex={-1}>
       <div className="page-heading">
         <div><h1 ref={headingRef} tabIndex={-1}>{mainTitle}</h1><p>{mainSubtitle}</p></div>
+        {page !== 'help' && stage === 'input' && <div className="heading-art"><TrustScene state={stage} tone={page === 'transfer' ? 'blue' : 'slate'} compact /></div>}
       </div>
 
       {page !== 'help' && !completed && <Progress stage={stage} />}
 
       <div className={`workspace ${page === 'help' ? 'help-workspace' : ''}`}>
-        <div className="primary-panel">
+        <div className="primary-panel" key={`${page}-${stage}`}>
           {page === 'check' && stage === 'input' && <section className="input-section" aria-label="输入需要核验的信息">
             <div className="section-top"><h2>对方让你做什么？</h2></div>
             <div className="segmented" aria-label="信息类型">
-              <button aria-pressed={mode === 'message'} onClick={() => { setMode('message'); setError(''); }}>粘贴消息</button>
-              <button aria-pressed={mode === 'call'} onClick={() => { setMode('call'); setError(''); }}>描述来电</button>
+              <button aria-pressed={mode === 'message'} onClick={() => { setMode('message'); setError(''); }}><ChatText size={18} aria-hidden="true" />粘贴消息</button>
+              <button aria-pressed={mode === 'call'} onClick={() => { setMode('call'); setError(''); }}><Phone size={18} aria-hidden="true" />描述来电</button>
             </div>
             <form onSubmit={inspectMessage} noValidate>
               <label className="field-label" htmlFor="message">{mode === 'message' ? '消息内容' : '来电内容'}</label>
@@ -188,7 +191,7 @@ export default function App() {
             <button className="back-button" onClick={() => setStage('input')}><CaretLeft size={16} aria-hidden="true" />修改{page === 'check' ? '内容' : '转账信息'}</button>
             {page === 'transfer' && <div className="transaction-summary"><div><span>向 {transfer.name} 转账</span><strong>{money(transfer.amount)}</strong></div><span className="status-label">尚未转出 · 模拟</span></div>}
             <div className="result-heading"><span className={`result-marker ${analysis.findings.length ? 'attention' : 'neutral'}`} aria-hidden="true">!</span><div><h2>{analysis.findings.length ? `有 ${analysis.findings.length} 处需要进一步核实` : page === 'transfer' ? '暂未识别到额外风险线索' : '暂未识别到明显的风险话术'}</h2><p>{analysis.findings.length ? '先别急着操作。看看这些线索，再联系本人确认。' : '这不代表请求安全。规则可能漏检，也无法确认对方身份。'}</p></div></div>
-            {analysis.findings.length > 0 && <ol className="findings">{analysis.findings.map((finding, index) => <li key={finding.id}><span className="finding-number">{String(index + 1).padStart(2, '0')}</span><div><h3>{finding.title}</h3><blockquote>{finding.evidence}</blockquote><p>{finding.detail}</p></div></li>)}</ol>}
+            {analysis.findings.length > 0 && <ol className="findings">{analysis.findings.map((finding, index) => <li key={finding.id}><span className="finding-number">{String(index + 1).padStart(2, '0')}</span><div><h3>{finding.title}</h3><blockquote><EvidenceText text={finding.evidence} phrase={finding.match} /></blockquote><p>{finding.detail}</p></div></li>)}</ol>}
             <div className="result-note"><strong>下一步，核实身份与请求</strong><p>系统只能提示内容线索。请通过原有联系方式或官方入口重新确认。</p></div>
             <button className="button primary full" onClick={() => { setConfirmed(false); setStage('verify'); }}>开始独立核实 <ArrowRight size={19} aria-hidden="true" /></button>
             <button className="button secondary full" onClick={pause}>{page === 'transfer' ? '先暂存这笔转账' : '暂时不操作'}</button>
@@ -207,7 +210,7 @@ export default function App() {
           </section>}
 
           {page !== 'help' && completed && <section className="completion-section">
-            <div className="completion-symbol"><Shield size={42} aria-hidden="true" /></div>
+            <div className="completion-symbol"><RecordSeal paused={stage === 'paused'} /></div>
             <h2>{stage === 'paused' ? page === 'transfer' ? '模拟转账已暂存' : '这次请求已暂停处理' : '已记录：你表示完成了独立核实'}</h2>
             <p>{stage === 'paused' ? '等联系上本人、确认具体请求后，再决定下一步。你可以随时返回查看这次核验。' : '如果仍有任何疑问，请继续暂停操作，或通过官方渠道寻求帮助。'}</p>
             {page === 'transfer' && <dl className="receipt"><div><dt>收款人</dt><dd>{transfer.name}</dd></div><div><dt>金额</dt><dd>{money(transfer.amount)}</dd></div><div><dt>资金状态</dt><dd>未发生实际转账</dd></div></dl>}
@@ -227,13 +230,14 @@ export default function App() {
           </section>}
         </div>
 
-        {page === 'help' ? <aside className="side-note help-aside"><Phone size={34} aria-hidden="true" /><h2>求助，不需要等到<br />完全确定被骗。</h2><p>发现异常就可以联系银行。把你知道的情况说清楚，让银行帮助判断下一步。</p><div className="source-note"><strong>官方信息来源</strong><p>OCBC Singapore 安全中心<br />核对日期：2026 年 10 月 14 日</p><ExternalLink href={officialLinks.security}>查看官方安全指引</ExternalLink></div><p className="small-note">此演示无法冻结账户、拦截付款或代你报案。请直接联系银行。</p></aside> : <SideNote page={page} goHelp={() => navigate('help')} />}
+        {page === 'help' ? <aside className="side-note help-aside"><TrustScene state="verify" tone="gold" /><h2>求助，不需要等到<br />完全确定被骗。</h2><p>发现异常就可以联系银行。把你知道的情况说清楚，让银行帮助判断下一步。</p><div className="source-note"><strong>官方信息来源</strong><p>OCBC Singapore 安全中心<br />核对日期：2026 年 10 月 14 日</p><ExternalLink href={officialLinks.security}>查看官方安全指引</ExternalLink></div><p className="small-note">此演示无法冻结账户、拦截付款或代你报案。请直接联系银行。</p></aside> : <SideNote page={page} stage={stage} findings={analysis?.findings.length ?? 0} goHelp={() => navigate('help')} />}
       </div>
 
       <div className="local-note"><LockSimple size={16} aria-hidden="true" /><p>你的内容留在当前浏览器。刷新或关闭页面后清除；下载的文件需自行保管。</p></div>
     </main>
 
-    <footer className="site-footer"><div><span>OCABC Challenge</span><p>独立概念原型，非 OCBC 官方服务。</p></div><div className="footer-links"><button onClick={() => setPolicy('privacy')}>隐私说明</button><button onClick={() => setPolicy('terms')}>使用说明</button></div></footer>
+    <footer className="site-footer"><div><span>OCBC Challenge</span><p>独立概念原型，非 OCBC 官方服务。</p></div><div className="footer-links"><button onClick={() => setPolicy('privacy')}>隐私说明</button><button onClick={() => setPolicy('terms')}>使用说明</button></div></footer>
+    </div>
 
     <dialog ref={dialogRef} className="policy-dialog" aria-labelledby="policy-title" onCancel={() => setPolicy(null)} onClose={() => setPolicy(null)}>
       <div className="dialog-top"><h2 id="policy-title">{policy === 'privacy' ? '隐私说明' : '使用说明'}</h2><button className="icon-button" aria-label="关闭说明" onClick={() => setPolicy(null)}><X size={22} /></button></div>
