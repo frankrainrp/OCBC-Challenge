@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+test-results/
+playwright-report/
+*.tsbuildinfo
+.impeccable/
+work/
+.DS_Store
+Thumbs.db
